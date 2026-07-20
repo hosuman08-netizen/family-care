@@ -57,7 +57,7 @@
       +'<div class="card"><b>7일 히트맵</b><div class="row" style="margin-top:8px;gap:4px">'
       +hist.map(function(h){return '<span class="chip" style="'+(h.full?'background:#166534;color:#bbf7d0':'')+'">'+h.k+' '+h.n+'/5</span>';}).join('')
       +'</div></div>'
-      +'<button id="shareCare" style="width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1">오늘 케어 공유</button>'
+      +'<button id="undoCare" style="width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1">↩ 직전 체크 취소</button>'+'<button id="shareCare" style="width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1">오늘 케어 공유</button>'
       +'<div style="margin-top:12px;text-align:center;font-size:12px">'
       +'<a style="color:#e0b552;margin:0 6px" href="https://hosuman08-netizen.github.io/legion-hub/?utm_source=care&utm_medium=pipe">🎮 Arcade</a>'
       +'<a style="color:#ece8f1;margin:0 6px" href="https://hosuman08-netizen.github.io/budget-pulse/?utm_source=care&utm_medium=pipe">💰 Budget</a>'
@@ -101,6 +101,12 @@
       localStorage.setItem(NK,note);
       try{legionTrack('note_save',{})}catch(e){}
       var b=document.getElementById('saveNote'); b.textContent='저장됨 ✓'; setTimeout(function(){b.textContent='메모 저장';},1200);
+    };
+    var uc=document.getElementById('undoCare');
+    if(uc) uc.onclick=function(){
+      if(!done.length)return;
+      done.pop(); localStorage.setItem(K,JSON.stringify(done)); render();
+      try{legionTrack('undo',{})}catch(e){}
     };
     document.getElementById('shareCare').onclick=function(){
       var text='Family Care '+done.length+'/5 · 🔥'+sc+'일 · 7일 만점 '+fullDays+' · https://hosuman08-netizen.github.io/family-care/';
