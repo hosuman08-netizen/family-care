@@ -10,13 +10,19 @@
   var note=localStorage.getItem(NK)||'';
   var root=document.getElementById('app');
 
-  function bumpStreak(){
+  function bumpStreak(partial){
     try{
       var st=JSON.parse(localStorage.getItem('fc_streak')||'{}');
-      var t=dayKey(0), y=dayKey(-1);
+      var t=dayKey(0), y=dayKey(-1), y2=dayKey(-2);
       if(st.last===t) return st;
+      // Duolingo-style freeze once / 7d if streak>=3
+      if(st.last && st.last!==y && st.last===y2 && (st.count||0)>=3){
+        var ready=!st.shieldLast||((new Date(t)-new Date(st.shieldLast))/86400000)>=7;
+        if(ready){st.shieldLast=t;st.last=y;try{legionTrack('streak_freeze',{count:st.count})}catch(e){}}
+      }
       st.count=(st.last===y)?(st.count||0)+1:1;
       st.last=t;
+      if(partial) st.partial=true; else st.partial=false;
       localStorage.setItem('fc_streak',JSON.stringify(st));
       return st;
     }catch(e){return {count:0};}
@@ -50,8 +56,10 @@
       +'<a style="color:#ece8f1;margin:0 6px" href="https://hosuman08-netizen.github.io/budget-pulse/?utm_source=care&utm_medium=pipe">💰 Budget</a>'
       +'</div>';
 
-    document.getElementById('list').innerHTML=items.map(function(c,i){
-      return '<label style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #2a2438"><input type="checkbox" data-i="'+i+'" '+(done.indexOf(i)>=0?'checked':'')+'> '+c+'</label>';
+    var order=items.map(function(c,i){return {c:c,i:i,done:done.indexOf(i)>=0};})
+      .sort(function(a,b){return (a.done===b.done)?a.i-b.i:(a.done?1:-1);});
+    document.getElementById('list').innerHTML=order.map(function(o){
+      return '<label style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #2a2438;opacity:'+(o.done?'.65':'1')+'"><input type="checkbox" data-i="'+o.i+'" '+(o.done?'checked':'')+'> '+o.c+'</label>';
     }).join('');
     document.querySelectorAll('input[data-i]').forEach(function(inp){
       inp.onchange=function(){
@@ -59,11 +67,15 @@
         if(inp.checked){if(done.indexOf(i)<0)done.push(i);} else done=done.filter(function(x){return x!==i;});
         localStorage.setItem(K,JSON.stringify(done));
         if(done.length>=items.length){
-          bumpStreak();
+          bumpStreak(false);
           var bk='fc_bonus_'+dayKey(0);
           if(!localStorage.getItem(bk)){localStorage.setItem(bk,'1'); try{legionTrack('activate',{all:1})}catch(e){}}
+        } else if(done.length>=3){
+          // soft partial day still counts once for retention loop
+          var pk='fc_partial_'+dayKey(0);
+          if(!localStorage.getItem(pk)){localStorage.setItem(pk,'1'); bumpStreak(true); try{legionTrack('activate',{partial:1})}catch(e){}}
         }
-        render(); try{legionTrack('activate',{})}catch(e){}
+        render(); try{legionTrack('activate',{n:done.length})}catch(e){}
       };
     });
     document.getElementById('saveNote').onclick=function(){
