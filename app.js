@@ -36,15 +36,22 @@
     }
     return out;
   }
+  function fomoLeft(){
+    var end=new Date(); end.setHours(24,0,0,0);
+    var ms=Math.max(0,end-Date.now());
+    return Math.floor(ms/3600000)+'h '+Math.floor((ms%3600000)/60000)+'m';
+  }
   function render(){
     var st=JSON.parse(localStorage.getItem('fc_streak')||'{}');
     var sc=st.count||0;
     var pct=Math.round(done.length/items.length*100);
     var hist=weekHist();
+    var fullDays=hist.filter(function(h){return h.full;}).length;
     root.innerHTML='<div class="card"><b>오늘 케어</b> '+done.length+'/'+items.length+' · 완료율 '+pct+'%'
-      +' <span class="chip">🔥 '+sc+'일</span>'
+      +' <span class="chip">🔥 '+sc+'일</span> <span class="chip">7일 만점 '+fullDays+'</span> <span class="chip">창 '+fomoLeft()+'</span>'
       +'<div class="bar"><i style="width:'+pct+'%;background:'+(pct>=100?'var(--ok)':'var(--gold)')+'"></i></div></div>'
       +'<div class="card" id="list"></div>'
+      +'<div class="row" style="margin:8px 0;gap:6px"><button class="sec" id="allDone" style="flex:1">오늘 전부 체크</button><button class="sec" id="clearDay" style="flex:1">오늘 초기화</button></div>'
       +'<div class="card"><label class="sub">오늘 메모</label><textarea id="note" rows="2" placeholder="약 시간, 특이사항…">'+note.replace(/</g,'&lt;')+'</textarea>'
       +'<button id="saveNote" class="sec" style="margin-top:6px">메모 저장</button></div>'
       +'<div class="card"><b>7일 히트맵</b><div class="row" style="margin-top:8px;gap:4px">'
@@ -78,6 +85,17 @@
         render(); try{legionTrack('activate',{n:done.length})}catch(e){}
       };
     });
+    document.getElementById('allDone').onclick=function(){
+      done=items.map(function(_,i){return i;});
+      localStorage.setItem(K,JSON.stringify(done));
+      bumpStreak(false);
+      try{localStorage.setItem('fc_bonus_'+dayKey(0),'1');}catch(e){}
+      render(); try{legionTrack('activate',{all:1,quick:1})}catch(e){}
+    };
+    document.getElementById('clearDay').onclick=function(){
+      if(!confirm('오늘 체크 초기화?'))return;
+      done=[]; localStorage.setItem(K,JSON.stringify(done)); render(); try{legionTrack('reset_day',{})}catch(e){}
+    };
     document.getElementById('saveNote').onclick=function(){
       note=document.getElementById('note').value||'';
       localStorage.setItem(NK,note);
@@ -85,7 +103,7 @@
       var b=document.getElementById('saveNote'); b.textContent='저장됨 ✓'; setTimeout(function(){b.textContent='메모 저장';},1200);
     };
     document.getElementById('shareCare').onclick=function(){
-      var text='Family Care '+done.length+'/5 · 🔥'+sc+'일 · https://hosuman08-netizen.github.io/family-care/';
+      var text='Family Care '+done.length+'/5 · 🔥'+sc+'일 · 7일 만점 '+fullDays+' · https://hosuman08-netizen.github.io/family-care/';
       if(navigator.share) navigator.share({text:text}).catch(function(){});
       else if(navigator.clipboard) navigator.clipboard.writeText(text);
       try{legionTrack('share_peak',{})}catch(e){}
