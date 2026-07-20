@@ -24,4 +24,13 @@
   }
   try{legionTrack('session_start',{})}catch(e){}
   render();
+  setTimeout(function(){
+    if(document.getElementById('shareCare'))return;
+    var b=document.createElement('button');b.id='shareCare';b.style.cssText='width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1';
+    b.textContent='오늘 케어 공유';b.onclick=function(){var d=JSON.parse(localStorage.getItem('fc_day_'+new Date().toDateString())||'[]');
+      var text='Family Care '+d.length+'/5 · https://hosuman08-netizen.github.io/family-care/';
+      if(navigator.clipboard)navigator.clipboard.writeText(text);try{legionTrack('share_peak',{})}catch(e){}};
+    document.getElementById('app').appendChild(b);
+  },50);
+
 })();
