@@ -5,7 +5,7 @@
   var done=JSON.parse(localStorage.getItem(K)||'[]');
   var root=document.getElementById('app');
   function render(){
-    root.innerHTML='<div class="card"><b>오늘 케어</b> '+done.length+'/'+items.length+'<div class="bar"><i style="width:'+(done.length/items.length*100)+'%"></i></div></div><div class="card" id="list"></div>';
+    root.innerHTML='<div class="card"><b>오늘 케어</b> '+done.length+'/'+items.length+' · 완료율 '+Math.round(done.length/items.length*100)+'%'+'<div class="bar"><i style="width:'+(done.length/items.length*100)+'%"></i></div></div><div class="card" id="list"></div>';
     document.getElementById('list').innerHTML=items.map(function(c,i){
       return '<label style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #2a2438"><input type="checkbox" data-i="'+i+'" '+(done.indexOf(i)>=0?'checked':'')+'> '+c+'</label>';
     }).join('');
