@@ -13,7 +13,12 @@
       inp.onchange=function(){
         var i=+inp.dataset.i;
         if(inp.checked){if(done.indexOf(i)<0)done.push(i);} else done=done.filter(function(x){return x!==i;});
-        localStorage.setItem(K,JSON.stringify(done)); render(); try{legionTrack('activate',{})}catch(e){}
+        localStorage.setItem(K,JSON.stringify(done)); 
+        if(done.length>=items.length){
+          var bk='fc_bonus_'+new Date().toDateString();
+          if(!localStorage.getItem(bk)){localStorage.setItem(bk,'1'); try{legionTrack('activate',{all:1})}catch(e){}}
+        }
+        render(); try{legionTrack('activate',{})}catch(e){}
       };
     });
   }
