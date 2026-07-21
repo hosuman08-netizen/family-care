@@ -47,16 +47,21 @@
     var pct=Math.round(done.length/items.length*100);
     var hist=weekHist();
     var fullDays=hist.filter(function(h){return h.full;}).length;
+    var partial=hist.filter(function(h){return h.n>=3;}).length;
+    var avgN=hist.reduce(function(a,h){return a+h.n;},0)/7;
+    var fullRate=Math.round(fullDays/7*100);
+    var yday=JSON.parse(localStorage.getItem('fc_day_'+dayKey(-1))||'[]').length;
+    var delta=done.length-yday;
     root.innerHTML='<div class="card"><b>오늘 케어</b> '+done.length+'/'+items.length+' · 완료율 '+pct+'%'
-      +' <span class="chip">🔥 '+sc+'일</span> <span class="chip">7일 만점 '+fullDays+'</span> <span class="chip">창 '+fomoLeft()+'</span>'
+      +' <span class="chip">🔥 '+sc+'일</span> <span class="chip">7일 만점 '+fullDays+'/7 ('+fullRate+'%)</span> <span class="chip">3+일 '+partial+'</span> <span class="chip">평균 '+(Math.round(avgN*10)/10)+'/5</span> <span class="chip">전일 '+(delta>=0?'+':'')+delta+'</span> <span class="chip">창 '+fomoLeft()+'</span>'
       +'<div class="bar"><i style="width:'+pct+'%;background:'+(pct>=100?'var(--ok)':'var(--gold)')+'"></i></div></div>'
       +'<div class="card" id="list"></div>'
       +'<div class="row" style="margin:8px 0;gap:6px"><button class="sec" id="allDone" style="flex:1">오늘 전부 체크</button><button class="sec" id="clearDay" style="flex:1">오늘 초기화</button></div>'
       +'<div class="card"><label class="sub">오늘 메모</label><textarea id="note" rows="2" placeholder="약 시간, 특이사항…">'+note.replace(/</g,'&lt;')+'</textarea>'
       +'<button id="saveNote" class="sec" style="margin-top:6px">메모 저장</button></div>'
       +'<div class="card"><b>7일 히트맵</b><div class="row" style="margin-top:8px;gap:4px">'
-      +hist.map(function(h){return '<span class="chip" style="'+(h.full?'background:#166534;color:#bbf7d0':'')+'">'+h.k+' '+h.n+'/5</span>';}).join('')
-      +'</div></div>'
+      +hist.map(function(h){return '<span class="chip" style="'+(h.full?'background:#166534;color:#bbf7d0':h.n>=3?'background:#3b2f10;color:#fde68a':'')+'">'+h.k+' '+h.n+'/5</span>';}).join('')
+      +'</div><p class="sub" style="margin-top:6px">완주율 '+fullRate+'% · 목표 주 5일 만점</p></div>'
       +'<button id="undoCare" style="width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1">↩ 직전 체크 취소</button>'+'<button id="shareCare" style="width:100%;margin-top:8px;padding:11px;border:0;border-radius:10px;background:#1c1826;color:#ece8f1">오늘 케어 공유</button>'
       +'<div style="margin-top:12px;text-align:center;font-size:12px">'
       +'<a style="color:#e0b552;margin:0 6px" href="https://hosuman08-netizen.github.io/legion-hub/?utm_source=care&utm_medium=pipe">🎮 Arcade</a>'
@@ -109,7 +114,7 @@
       try{legionTrack('undo',{})}catch(e){}
     };
     document.getElementById('shareCare').onclick=function(){
-      var text='Family Care '+done.length+'/5 · 🔥'+sc+'일 · 7일 만점 '+fullDays+' · https://hosuman08-netizen.github.io/family-care/';
+      var text='Family Care '+done.length+'/5 · 🔥'+sc+'일 · 7일 만점 '+fullDays+'/7 ('+fullRate+'%) · https://hosuman08-netizen.github.io/family-care/';
       if(navigator.share) navigator.share({text:text}).catch(function(){});
       else if(navigator.clipboard) navigator.clipboard.writeText(text);
       try{legionTrack('share_peak',{})}catch(e){}
